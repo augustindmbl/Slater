@@ -139,3 +139,13 @@ def energy_configuration(config, screen_constants):
             energy_total += occupation*energy
 
     return energy_total
+
+def print_config(config_list):
+    
+    config = ""
+
+    for index, value in enumerate(config_list):
+        if value != 0:
+            config += Constant.orbital_dict_inv[index] + str([int(value)]) + " "
+    
+    return config

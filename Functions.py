@@ -146,6 +146,6 @@ def print_config(config_list):
 
     for index, value in enumerate(config_list):
         if value != 0:
-            config += Constant.orbital_dict_inv[index] + str([int(value)]) + " "
+            config += Constant.orbital_latex_dict[index] + "^{"+ str(int(value)) + "}" + "\;"
     
     return config

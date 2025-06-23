@@ -120,7 +120,7 @@ def screened_charge(atomic_number, orbital, config, screen_constants):
     return effective_charge
 
 
-def energy_configuration(config, screen_constants):
+def energy_configuration(atomic_number, config, screen_constants):
     """ Calcule la charge effective vu par un électron à partir de la configuration électronique.
     Args:
         config (list): Configuration électronique sous forme de liste avec pour valeurs les occupations de chaque orbitale.
@@ -133,7 +133,7 @@ def energy_configuration(config, screen_constants):
         if occupation != 0:
             orbital = Constant.orbital_dict_inv[index]
             
-            effective_charge = screened_charge(orbital, config, screen_constants)
+            effective_charge = screened_charge(atomic_number, orbital, config, screen_constants)
             energy = energy_orbital(orbital, effective_charge)
             
             energy_total += occupation*energy

@@ -20,6 +20,15 @@ atomic_number = Constant.element_dict[atom]
 ## Type of screened constants ##
 method = st.selectbox("Constantes d'écrantage", ["Mendozza", "Lanzini"])
 
+if method == "Mendozza":
+    screen_constants = Functions.read_csv_screening_constants(Constant.file_path_mendozza)
+
+elif method == "Lanzini":
+    screen_constants = Functions.read_csv_screening_constants(Constant.file_path_lanzini)
+
+## Units for energy ##
+units = st.radio("Unité pour l'énergie :", ["eV", "a.u.", "Rydberg"], horizontal=True)
+
 ## Configuration init ##
 st.subheader("Configuration initiale")
 
@@ -93,7 +102,7 @@ for i, orbital in enumerate(st.session_state.orbitals_final):
             st.rerun()
 
 # Validation button
-if st.button("✅ Valider les configurations"):
+if st.button("✅ Calculer"):
 
     config_initial_list = [0]*24
     config_final_list = [0]*24
@@ -113,18 +122,38 @@ if st.button("✅ Valider les configurations"):
     config_initial = Functions.print_config(config_initial_list)
     config_final = Functions.print_config(config_final_list)
 
-    st.success("Configuration initiale : " + str(config_initial))
-    st.success("Configuration finale: " + str(config_final))
+    energy_init = Functions.energy_configuration(atomic_number, config_initial_list, screen_constants) # Conversion de J en eV
+    energy_final = Functions.energy_configuration(atomic_number, config_final_list, screen_constants) 
+    energy_transition = energy_final - energy_init
 
-    # Stockage global dans le session_state
-    st.session_state.config_initial_list = config_initial_list
-    st.session_state.config_final_list = config_final_list
-
-if st.button("Calculer"):
-
-    config_i = st.session_state.config_initial_list
-    config_f = st.session_state.config_final_list
-    print("Initial config :", config_i)
-    print("Final config :", config_f)
+    st.header("Résultats")
     
+    if units == "eV":
+        st.markdown(
+        f"**Configuration initiale** : {config_initial} ({energy_init:.2f} eV)  \n"
+        f"**Configuration finale** : {config_final} ({energy_final:.2f} eV)")
+
+        st.markdown(
+        f"### Énergie de la transition : **{energy_transition:.2f} eV**")
+
+    elif units == "a.u.":
+        st.markdown(
+        f"**Configuration initiale** : {config_initial} ({energy_init/(2*Constant.Rydberg_constant):.2f} a.u.)  \n"
+        f"**Configuration finale** : {config_final} ({energy_final/(2*Constant.Rydberg_constant):.2f} a.u.)")
+
+        st.markdown(
+        f"### Énergie de la transition : **{energy_transition/(2*Constant.Rydberg_constant):.2f} a.u.**")
+    
+    elif units == "Rydberg":
+        st.markdown(
+        f"**Configuration initiale** : {config_initial} ({energy_init/Constant.Rydberg_constant:.2f} Ry)  \n"
+        f"**Configuration finale** : {config_final} ({energy_final/Constant.Rydberg_constant:.2f} Ry)")
+
+        st.markdown(
+        f"### Énergie de la transition : **{energy_transition/Constant.Rydberg_constant:.2f} Ry**")
+
+
+
+
+
  

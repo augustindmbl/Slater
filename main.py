@@ -8,17 +8,20 @@ import Constant
 import Functions
 
 st.title("Calcul d'énergies de transition")
+st.markdown("[Atomic Spectra Database (NIST)](https://www.nist.gov/pml/atomic-spectra-database)")
+
 
 # --------------- User Input ---------------
 
 st.header("Initialisation")
 
 ## Atomic number ##
-atom = st.selectbox("Numéro atomique", Constant.element_dict.keys())
-atomic_number = Constant.element_dict[atom]
+atom = st.selectbox("Numéro atomique", Constant.element_atomic_number_dict.keys())
+atomic_number = Constant.element_atomic_number_dict[atom]
+atomic_symbol = Constant.element_symbol_dict[atom]
 
-## Type of screened constants ##
-method = st.selectbox("Constantes d'écrantage", ["Mendozza", "Lanzini"])
+## Choice of screening constants ##
+method = st.selectbox("Constantes d'écrantage", ["Mendozza", "Lanzini", "Faussurier"])
 
 if method == "Mendozza":
     screen_constants = Functions.read_csv_screening_constants(Constant.file_path_mendozza)
@@ -26,24 +29,36 @@ if method == "Mendozza":
 elif method == "Lanzini":
     screen_constants = Functions.read_csv_screening_constants(Constant.file_path_lanzini)
 
-## Units for energy ##
-units = st.radio("Unité pour l'énergie :", ["eV", "a.u.", "Rydberg"], horizontal=True)
+elif method == "Faussurier":
+    screen_constants = Functions.read_csv_screening_constants(Constant.file_path_faussurier)
+
+## Units for energy and precision ##
+col1, col2 = st.columns([2, 1])
+with col1:
+    units = st.radio("Unité pour l'énergie", ["eV", "a.u.", "Rydberg"], horizontal=True)
+with col2:
+    precision = st.selectbox("Précision sur l'énergie", [2, 3, 4, 5]) 
 
 ## Configuration init ##
 st.subheader("Configuration initiale")
 
-#Initialization of the list of orbitals
+# Initialization of the list of orbitals
 if "orbitals_initial" not in st.session_state:
     st.session_state.orbitals_initial = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-#Button to add an orbital
-if st.button("➕ Ajouter une orbitale", key="add_orbital_initial"):
-    st.session_state.orbitals_initial.append({"n": 1, "l": "s", "j": "1/2", "occupation": 0})
+# Button to add an orbital or reset the list
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("➕ Ajouter une orbitale", key="add_orbital_initial"):
+        st.session_state.orbitals_initial.append({"n": 1, "l": "s", "j": "1/2", "occupation": 0})
+with col2:
+    if st.button("Reset", key = "reset_initial"):
+        st.session_state.orbitals_initial = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-#Orbitals display
+# Orbitals display
 for i, orbital in enumerate(st.session_state.orbitals_initial):
     
-    #Position of the columns
+    # Position of the selectbox/button (n, l, j, P, delete buttons)
     cols = st.columns([1, 1, 1, 1, 0.5])
     
     with cols[0]: #n
@@ -53,14 +68,15 @@ for i, orbital in enumerate(st.session_state.orbitals_initial):
         st.session_state.orbitals_initial[i]["l"] = st.selectbox(f"l", ["s", "p", "d", "f"], key=f"l_{i}")
     
     with cols[2]: #j
-        l_value = Constant.l_dict[st.session_state.orbitals_initial[i]["l"]]
+        l_value = Constant.l_dict[st.session_state.orbitals_initial[i]["l"]] #To obtain the quantum number from the letter (exp : s -> 1)
         st.session_state.orbitals_initial[i]["j"] = st.selectbox(f"j", Constant.j_possible_dict[l_value], key=f"j_{i}")
     
-    with cols[3]: #P
-        j_value = float(Fraction(st.session_state.orbitals_initial[i]["j"]))
+    with cols[3]: #Occupation
+        j_value = float(Fraction(st.session_state.orbitals_initial[i]["j"])) #To convert j in a float (exp : 3/2 -> 1.5)
         st.session_state.orbitals_initial[i]["occupation"] = st.number_input(f"Occupation", min_value=0, max_value=int(2*j_value+1), step=1, key=f"occ_{i}")
     
-    with cols[4]: #Button to remove an orbital
+    with cols[4]: # Button to remove an orbital
+        st.markdown("<br>", unsafe_allow_html=True) #To align the button with the rest of the line
         if st.button("❌", key=f"remove_{i}"):
             st.session_state.orbitals_initial.pop(i)
             st.rerun()
@@ -68,18 +84,23 @@ for i, orbital in enumerate(st.session_state.orbitals_initial):
 ## Configuration final ##
 st.subheader("Configuration finale")
 
-# Initialisation de la liste des orbitales finales
+# Initialization of the list of orbitals
 if "orbitals_final" not in st.session_state:
     st.session_state.orbitals_final = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-# Bouton pour ajouter une orbitale finale
-if st.button("➕ Ajouter une orbitale", key="add_orbital_final"):
-    st.session_state.orbitals_final.append({"n": 1, "l": "s", "j": "1/2", "occupation": 0})
+#Button to add an orbital or reset the list
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("➕ Ajouter une orbitale", key="add_orbital_final"):
+        st.session_state.orbitals_final.append({"n": 1, "l": "s", "j": "1/2", "occupation": 0})
+with col2:
+    if st.button("Reset", key = "reset_final"):
+        st.session_state.orbitals_final = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-# Affichage des orbitales finales
+# Orbitals display
 for i, orbital in enumerate(st.session_state.orbitals_final):
     
-    # Position des colonnes
+    # Position of the selectbox/button (n, l, j, P, delete buttons)
     cols = st.columns([1, 1, 1, 1, 0.5])
     
     with cols[0]:  # n
@@ -89,14 +110,15 @@ for i, orbital in enumerate(st.session_state.orbitals_final):
         st.session_state.orbitals_final[i]["l"] = st.selectbox(f"l", ["s", "p", "d", "f"], key=f"l_final_{i}")
     
     with cols[2]:  # j
-        l_value = Constant.l_dict[st.session_state.orbitals_final[i]["l"]]
+        l_value = Constant.l_dict[st.session_state.orbitals_final[i]["l"]] #To obtain the quantum number from the letter (exp : s -> 1)
         st.session_state.orbitals_final[i]["j"] = st.selectbox(f"j", Constant.j_possible_dict[l_value], key=f"j_final_{i}")
     
     with cols[3]:  # Occupation
-        j_value = float(Fraction(st.session_state.orbitals_final[i]["j"]))
+        j_value = float(Fraction(st.session_state.orbitals_final[i]["j"])) #To convert j in a float (exp : 3/2 -> 1.5)
         st.session_state.orbitals_final[i]["occupation"] = st.number_input(f"Occupation", min_value=0, max_value=int(2*j_value + 1), step=1, key=f"occ_final_{i}")
     
-    with cols[4]:  # Bouton pour supprimer une orbitale finale
+    with cols[4]:  # Button to remove an orbital
+        st.markdown("<br>", unsafe_allow_html=True) #To align the button with the rest of the line
         if st.button("❌", key=f"remove_final_{i}"):
             st.session_state.orbitals_final.pop(i)
             st.rerun()
@@ -122,37 +144,104 @@ if st.button("✅ Calculer"):
     config_initial = Functions.print_config(config_initial_list)
     config_final = Functions.print_config(config_final_list)
 
+    number_electron_initial = sum(config_initial_list)
+    number_electron_final = sum(config_final_list)
+    
+    good_number_of_electron_initial = True
+    good_number_of_electron_final = True
+
+    for index, value in enumerate(config_initial_list): 
+
+        if value > Constant.orbital_max_electrons[index]:
+            good_number_of_electron_initial = False
+            error_initial = f"Il y a trop d'électrons dans l'orbital ${Constant.orbital_latex_dict[index]}$ dans la configuration initiale."
+            break
+
+    for index, value in enumerate(config_final_list): 
+
+        if value > Constant.orbital_max_electrons[index]:
+            good_number_of_electron_final = False
+            error_final = f"Il y a trop d'électrons dans l'orbital ${Constant.orbital_latex_dict[index]}$ dans la configuration finale."
+            break
+
     energy_init = Functions.energy_configuration(atomic_number, config_initial_list, screen_constants) # Conversion de J en eV
     energy_final = Functions.energy_configuration(atomic_number, config_final_list, screen_constants) 
     energy_transition = energy_final - energy_init
 
-    st.header("Résultats")
+    st.header("Résultats") 
     
-    if units == "eV":
-        st.markdown(
-        f"**Configuration initiale** : {config_initial} ({energy_init:.2f} eV)  \n"
-        f"**Configuration finale** : {config_final} ({energy_final:.2f} eV)")
 
-        st.markdown(
-        f"### Énergie de la transition : **{energy_transition:.2f} eV**")
 
-    elif units == "a.u.":
+    if number_electron_initial != number_electron_final:
         st.markdown(
-        f"**Configuration initiale** : {config_initial} ({energy_init/(2*Constant.Rydberg_constant):.2f} a.u.)  \n"
-        f"**Configuration finale** : {config_final} ({energy_final/(2*Constant.Rydberg_constant):.2f} a.u.)")
-
-        st.markdown(
-        f"### Énergie de la transition : **{energy_transition/(2*Constant.Rydberg_constant):.2f} a.u.**")
+        "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
+        "Les deux configurations n'ont pas le même nombre d'électrons.",
+        unsafe_allow_html=True)
     
-    elif units == "Rydberg":
+    elif not good_number_of_electron_initial:
         st.markdown(
-        f"**Configuration initiale** : {config_initial} ({energy_init/Constant.Rydberg_constant:.2f} Ry)  \n"
-        f"**Configuration finale** : {config_final} ({energy_final/Constant.Rydberg_constant:.2f} Ry)")
-
+        "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
+        + error_initial,
+        unsafe_allow_html=True)
+    
+    elif not good_number_of_electron_final:
         st.markdown(
-        f"### Énergie de la transition : **{energy_transition/Constant.Rydberg_constant:.2f} Ry**")
+        "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
+        + error_final,
+        unsafe_allow_html=True)
+    
+    else:
+
+        charge_state = atomic_number - number_electron_initial
+        
+        if charge_state > 0:
+            ion_name = atomic_symbol + "^{" + str(int(charge_state)) + "+}"
+        elif charge_state < 0:
+            ion_name = atomic_symbol + "^{" + str(int(-charge_state)) + "-}"
+        else:
+            ion_name = atomic_symbol
 
 
+        if units == "eV":
+            st.markdown(
+            f"**Ion** : ${ion_name}$  \n"
+            f"**Configuration initiale** : ${config_initial}$ ({energy_init:.{precision}f} eV)  \n"
+            f"**Configuration finale** : ${config_final}$ ({energy_final:.{precision}f} eV)")
+
+            st.markdown(
+            f"### Énergie de la transition : **{energy_transition:.{precision}f} eV**")
+
+        elif units == "a.u.":
+            st.markdown(
+            f"**Ion** : ${ion_name}$  \n"
+            f"**Configuration initiale** : ${config_initial}$ ({energy_init/(2*Constant.Rydberg_constant):.{precision}f} a.u.)  \n"
+            f"**Configuration finale** : ${config_final}$ ({energy_final/(2*Constant.Rydberg_constant):.{precision}f} a.u.)")
+
+            st.markdown(
+            f"### Énergie de la transition : **{energy_transition/(2*Constant.Rydberg_constant):.{precision}f} a.u.**")
+        
+        elif units == "Rydberg":
+            st.markdown(
+            f"**Ion** : ${ion_name}$  \n"
+            f"**Configuration initiale** : ${config_initial}$ ({energy_init/Constant.Rydberg_constant:.{precision}f} Ry)  \n"
+            f"**Configuration finale** : ${config_final}$ ({energy_final/Constant.Rydberg_constant:.{precision}f} Ry)")
+
+            st.markdown(
+            f"### Énergie de la transition : **{energy_transition/Constant.Rydberg_constant:.{precision}f} Ry**")
+
+
+# Auto-fermeture après 5 minutes d'inactivité
+count = st_autorefresh(interval=60000, key="auto_refresh")
+
+if "last_ping" not in st.session_state:
+    st.session_state.last_ping = time.time()
+else:
+    if time.time() - st.session_state.last_ping > 300:  # 5 min
+        st.write("Inactivité détectée, fermeture du serveur")
+        time.sleep(2)
+        os._exit(0)
+    else:
+        st.session_state.last_ping = time.time()
 
 
 

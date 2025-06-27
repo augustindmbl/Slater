@@ -8,7 +8,7 @@ This toolkit provides a set of Python scripts and utilities for performing atomi
 
 If Python is not installed yet:
 
-- **Windows**: Download the installer from [python.org](https://www.python.org/downloads/windows/) and make sure to check **"Add Python to PATH"** during installation.
+- **Windows**: Download the installer from [python.org](https://www.python.org/downloads/windows/) and make sure to check **"Add Python to PATH"** during installation. -> Verify path in cmd
 - **macOS**: Use [Homebrew](https://brew.sh/):  
   ```bashCom
   brew install python

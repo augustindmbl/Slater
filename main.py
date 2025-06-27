@@ -125,30 +125,39 @@ for i, orbital in enumerate(st.session_state.orbitals_final):
             st.session_state.orbitals_final.pop(i)
             st.rerun()
 
-# Validation button
+
+
+# --------------- Calculation ---------------
+
 if st.button("✅ Calculer"):
 
+    # Initialization of list for configuration. Each element is an orbital (index given by Constant.orbital_dict) and the values is the occupation
     config_initial_list = [0]*24
     config_final_list = [0]*24
 
+    # Fill config_initial_list with the selectbox values
     for orb in st.session_state.orbitals_initial:
 
         nlj = str(orb["n"]) + str(orb["l"]) + str(orb["j"])
         orbital_index = Constant.orbital_dict[nlj]
         config_initial_list[orbital_index] += orb["occupation"]
     
+    # Fill config_final_list with the selectbox values
     for orb in st.session_state.orbitals_final:
 
         nlj = str(orb["n"]) + str(orb["l"]) + str(orb["j"])
         orbital_index = Constant.orbital_dict[nlj]
         config_final_list[orbital_index] += orb["occupation"]
 
+    # Transform config list in a string to print the configuration with LaTeX style
     config_initial = Functions.print_config(config_initial_list)
     config_final = Functions.print_config(config_final_list)
 
+    # Calculates the number of electron for initial and final configuration
     number_electron_initial = sum(config_initial_list)
     number_electron_final = sum(config_final_list)
     
+    # Test to verify that there is no too much electron for a single configuration. Initialy the condition is True and then it's modified in False if there is problem.
     good_number_of_electron_initial = True
     good_number_of_electron_final = True
 
@@ -165,43 +174,53 @@ if st.button("✅ Calculer"):
             good_number_of_electron_final = False
             error_final = f"Il y a trop d'électrons dans l'orbital ${Constant.orbital_latex_dict[index]}$ dans la configuration finale."
             break
-
-    energy_init = Functions.energy_configuration(atomic_number, config_initial_list, screen_constants) # Conversion de J en eV
+    
+    #Calculation of initial, final and transition energy
+    energy_init = Functions.energy_configuration(atomic_number, config_initial_list, screen_constants)
     energy_final = Functions.energy_configuration(atomic_number, config_final_list, screen_constants) 
     energy_transition = energy_final - energy_init
 
+
+# --------------- Output ---------------
+
     st.header("Résultats") 
-    
 
+    ## Error test section ##
 
+    # Initial and final configurations must have the same number of electrons
     if number_electron_initial != number_electron_final:
         st.markdown(
         "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
         "Les deux configurations n'ont pas le même nombre d'électrons.",
         unsafe_allow_html=True)
     
+    # Configurations must have at least one electrons
     elif number_electron_initial == 0:
         st.markdown(
         "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
         "Aucune configuration n'a été rentrée.",
         unsafe_allow_html=True)
     
+    # Occupation for an orbital is determined by j. Test for initial configuration
     elif not good_number_of_electron_initial:
         st.markdown(
         "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
         + error_initial,
         unsafe_allow_html=True)
     
+    # Occupation for an orbital is determined by j. Test for final configuration
     elif not good_number_of_electron_final:
         st.markdown(
         "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
         + error_final,
         unsafe_allow_html=True)
     
+    # If everything is good resultats are printed
     else:
 
         charge_state = atomic_number - number_electron_initial
         
+        # Display difference if it's a positive or negative ions 
         if charge_state > 0:
             ion_name = atomic_symbol + "^{" + str(int(charge_state)) + "+}"
         elif charge_state < 0:
@@ -209,7 +228,7 @@ if st.button("✅ Calculer"):
         else:
             ion_name = atomic_symbol
 
-
+        # Results in eV
         if units == "eV":
             st.markdown(
             f"**Ion** : ${ion_name}$  \n"
@@ -218,7 +237,8 @@ if st.button("✅ Calculer"):
 
             st.markdown(
             f"### Énergie de la transition : **{energy_transition:.{precision}f} eV**")
-
+        
+        # Results in atomic units
         elif units == "a.u.":
             st.markdown(
             f"**Ion** : ${ion_name}$  \n"
@@ -228,6 +248,7 @@ if st.button("✅ Calculer"):
             st.markdown(
             f"### Énergie de la transition : **{energy_transition/(2*Constant.Rydberg_constant):.{precision}f} a.u.**")
         
+        # Results in Rydberg
         elif units == "Rydberg":
             st.markdown(
             f"**Ion** : ${ion_name}$  \n"
@@ -238,39 +259,6 @@ if st.button("✅ Calculer"):
             f"### Énergie de la transition : **{energy_transition/Constant.Rydberg_constant:.{precision}f} Ry**")
 
 
-
-# Auto-refresh chaque 60 secondes
-count = st_autorefresh(interval=60000, key="auto_refresh")
-
-if "last_ping" not in st.session_state:
-    st.session_state.last_ping = time.time()
-else:
-    if time.time() - st.session_state.last_ping > 7200:  #  2 hours
-        # Affichage du message + scroll JS
-        st.markdown(
-            """
-            <script>
-                window.scrollTo({top: 0, behavior: 'smooth'});
-            </script>
-            <div style='
-                background-color:#ffdddd;
-                padding:20px;
-                border-radius:10px;
-                text-align:center;
-                font-size:40px;
-                font-weight:bold;
-                color:#b30000;
-                margin-top:0px;
-            '>
-                ⚠️ Inactivité détectée : fermeture du serveur...
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        time.sleep(2)
-        os._exit(0)
-    else:
-        st.session_state.last_ping = time.time()
 
 
 

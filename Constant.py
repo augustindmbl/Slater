@@ -1,5 +1,7 @@
-import os
+""" All physical constants / Usefull dictionaries to manipulate orbital configuration and atoms / Path to screening constants csv
+"""
 
+import os
 
 # Physical constants
 mass_electron = 9.10939*10**(-31)  # (en kg)
@@ -87,8 +89,6 @@ orbital_max_electrons = {
     22: 2,
     23: 4
 }
-
-
 
 element_atomic_number_dict = {"Hydrogen (1)": 1,
     "Helium (2)": 2,

@@ -1,110 +1,84 @@
+""" Functions for reading csv / Calculate energy or effective charge
+"""
+
 import csv
 import numpy as np
 import Constant
 
 def read_csv_screening_constants(filepath):
-    """ Lit un fichier CSV (séparateur = ;), supprime la première ligne et la première colonne,
-    puis retourne un tableau NumPy avec les données restantes.
+    """Reads a CSV file (separator = ';'), removes the first row and the first column,
+    then returns a NumPy array with the remaining data.
 
     Args:
-        filepath (str): Chemin vers le fichier CSV.
+        filepath (str): Path to the CSV file.
 
     Returns:
-        np.ndarray: Données du CSV sous forme de tableau NumPy (sans la première ligne/colonne).
+        np.ndarray: CSV data as a NumPy array (without the first row and column).
     """
 
     with open(filepath, 'r', newline='') as f:
         reader = csv.reader(f, delimiter=';')
-        rows = list(reader)[1:]  # Supprime la première ligne (nom des orbitales)
+        rows = list(reader)[1:]  # Delete first row (orbital name)
 
-    # Supprime la première colonne de chaque ligne (nom des orbitales)
+    # Delete first column (orbital name)
     data = [row[1:] for row in rows if len(row) > 1]
 
     return np.array(data, dtype=float)
 
-
-def read_csv_config(filepath, mode="init"):
-    """ Lit un fichier CSV séparé par des points-virgules, supprime la première ligne
-    et la première colonne, puis retourne la ligne spécifiée :
-    
-    - mode="init" : première ligne restante
-    - mode="final" : dernière ligne restante
-
-    Retourne un tableau NumPy 1D.
-    """
-    
-    if mode not in ["init", "final"]:
-        raise ValueError("Le paramètre 'mode' doit être 'init' ou 'final'.")
-
-    with open(filepath, 'r', newline='') as f:
-        reader = csv.reader(f, delimiter=';')
-        rows = list(reader)[1:]  # Supprime la première ligne (nom des orbitales)
-
-    # Supprime la première colonne de chaque ligne (nom de la configuration)
-    data = [row[1:] for row in rows if len(row) > 1]
-
-    if not data:
-        raise ValueError("Le fichier ne contient pas de données après suppression.")
-
-    # Choix de la ligne
-    line = data[0] if mode == "init" else data[-1]
-
-    return np.array(line, dtype=float)
-
-
 def read_orbital (orbital):
-    """Prend une chaîne de type '4f7/2' et retourne un tuple (n, l, j)
-    où :
-    - n est un entier
-    - l est un entier (0=s, 1=p, 2=d, 3=f)
-    - j est un float (par ex. 1.5)
+    """Takes a string of the form '4f7/2' and returns a tuple (n, l, j)
+    where:
+    - n is an integer
+    - l is an integer (0=s, 1=p, 2=d, 3=f)
+    - j is a float (e.g., 1.5)
     """
-    # Dictionnaire pour convertir lettre -> l
-    l_dict = {'s': 0, 'p': 1, 'd': 2, 'f': 3}
 
-    # Extraire n (chiffre au début)
+    # Extract n (first character)
     n = int(orbital[0])
 
-    # Extraire l (lettre unique : s, p, d, f)
+    # Extract and convert l (second character)
     l_char = orbital[1]
-    l = l_dict[l_char]
+    l = Constant.l_dict[l_char]
 
-    # Extraire j (peut être "1/2", "3/2", etc.)
+    # Extract j (possibly "1/2", "3/2", etc.)
     j_str = orbital[2:]
-    if '/' in j_str:
-        num, denom = j_str.split('/')
-        j = int(num) / int(denom)
-    else:
-        j = float(j_str)  # Pour les cas comme "1s0" (rare mais possible en modèle)
-
+    num, denom = j_str.split('/')
+    j = int(num) / int(denom)
+   
     return n, l, j
 
 
 def energy_orbital(orbital, effecive_charge):
-    """ Calcule l'énergie d'une orbitale donnée en fonction de la charge effective à partir de la forumule de Dirac.
+    """Calculates the energy of a given orbital based on the effective charge using Dirac's formula.
+
     Args:
-        orbital (str): Nom de l'orbital (par exemple, "1s1/2").
-        effecive_charge (float): Charge effective de l'orbital.
+        orbital (str): Name of the orbital (e.g., "1s1/2").
+        effective_charge (float): Effective charge of the orbital.
+
     Returns:
-        float: Énergie de l'orbital en eV.
+        float: Energy of the orbital in eV.
     """
 
     n, l , j = read_orbital(orbital)
 
     energy = Constant.mass_electron*Constant.light_speed**2*((1 + 
-            (Constant.fine_structure_constant*effecive_charge/(n - j - 0.5 + np.sqrt((j + 0.5)**2 - (Constant.fine_structure_constant*effecive_charge)**2)))**2)**(-1/2) - 1) / Constant.eV
+            (Constant.fine_structure_constant*effecive_charge/(n - j - 0.5 + np.sqrt((j + 0.5)**2 - 
+            (Constant.fine_structure_constant*effecive_charge)**2)))**2)**(-1/2) - 1) / Constant.eV
 
     return energy
 
 
 def screened_charge(atomic_number, orbital, config, screen_constants):
-    """ Calcule la charge effective vu par un électron à partir de la configuration électronique.
+    """Calculates the effective charge seen by an electron based on the electronic configuration.
+
     Args:
-        orbital (str): Nom de l'orbital (par exemple, "1s1/2").
-        config (str): Configuration électronique sous forme de chaîne (par exemple, "1s1/2 2s1/2 2p1/2").
-        screen_constants (array): Tableau des constantes d'écrantages.
+        atomic number (int).
+        orbital (str): Name of the orbital (e.g., "1s1/2").
+        config (str): Electronic configuration as a string (e.g., "1s1/2 2s1/2 2p1/2").
+        screen_constants (array): Array of screening constants.
+
     Returns:
-        float: Charge effective vue par l'électron dans l'orbital.
+        float: Effective charge seen by the electron in the orbital.
     """
 
     orbital_index = Constant.orbital_dict[orbital]
@@ -121,14 +95,19 @@ def screened_charge(atomic_number, orbital, config, screen_constants):
 
 
 def energy_configuration(atomic_number, config, screen_constants):
-    """ Calcule la charge effective vu par un électron à partir de la configuration électronique.
+    """Calculates the total energy of the configuration.
+
     Args:
-        config (list): Configuration électronique sous forme de liste avec pour valeurs les occupations de chaque orbitale.
+        atomic number (int).
+        config (list): Electronic configuration as a list with occupation numbers for each orbital.
+        screen_constants (array): Array of screening constants.
+
     Returns:
-        float: Energie totale de la configuration en eV.
+        float: Total energy of the configuration in eV.
     """
 
     energy_total = 0
+    # Sum on orbtal's energy
     for index, occupation in enumerate(config):
         if occupation != 0:
             orbital = Constant.orbital_dict_inv[index]
@@ -141,7 +120,15 @@ def energy_configuration(atomic_number, config, screen_constants):
     return energy_total
 
 def print_config(config_list):
-    
+    """Builds the string that will display the electronic configuration in LaTeX format (interpreted as a raw string).
+
+    Args:
+        config (list): Electronic configuration as a list with occupation numbers for each orbital.
+
+    Returns:
+        str: Configuration in LaTeX format.
+    """
+
     config = ""
 
     for index, value in enumerate(config_list):

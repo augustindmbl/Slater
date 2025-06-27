@@ -62,10 +62,11 @@ for i, orbital in enumerate(st.session_state.orbitals_initial):
     cols = st.columns([1, 1, 1, 1, 0.5])
     
     with cols[0]: #n
-        st.session_state.orbitals_initial[i]["n"] = st.selectbox(f"n", range(1, 8), key=f"n_{i}")
+        st.session_state.orbitals_initial[i]["n"] = st.selectbox(f"n", range(1, 7), key=f"n_{i}")
     
     with cols[1]: #l
-        st.session_state.orbitals_initial[i]["l"] = st.selectbox(f"l", ["s", "p", "d", "f"], key=f"l_{i}")
+        n_value = float(st.session_state.orbitals_initial[i]["n"])
+        st.session_state.orbitals_initial[i]["l"] = st.selectbox(f"l", Constant.l_possible_dict[n_value], key=f"l_{i}")
     
     with cols[2]: #j
         l_value = Constant.l_dict[st.session_state.orbitals_initial[i]["l"]] #To obtain the quantum number from the letter (exp : s -> 1)
@@ -104,10 +105,11 @@ for i, orbital in enumerate(st.session_state.orbitals_final):
     cols = st.columns([1, 1, 1, 1, 0.5])
     
     with cols[0]:  # n
-        st.session_state.orbitals_final[i]["n"] = st.selectbox(f"n", range(1, 8), key=f"n_final_{i}")
+        st.session_state.orbitals_final[i]["n"] = st.selectbox(f"n", range(1, 7), key=f"n_final_{i}")
     
     with cols[1]:  # l
-        st.session_state.orbitals_final[i]["l"] = st.selectbox(f"l", ["s", "p", "d", "f"], key=f"l_final_{i}")
+        n_value = float(st.session_state.orbitals_final[i]["n"])
+        st.session_state.orbitals_final[i]["l"] = st.selectbox(f"l", Constant.l_possible_dict[n_value], key=f"l_final_{i}")
     
     with cols[2]:  # j
         l_value = Constant.l_dict[st.session_state.orbitals_final[i]["l"]] #To obtain the quantum number from the letter (exp : s -> 1)
@@ -178,6 +180,12 @@ if st.button("✅ Calculer"):
         "Les deux configurations n'ont pas le même nombre d'électrons.",
         unsafe_allow_html=True)
     
+    elif number_electron_initial == 0:
+        st.markdown(
+        "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
+        "Aucune configuration n'a été rentrée.",
+        unsafe_allow_html=True)
+    
     elif not good_number_of_electron_initial:
         st.markdown(
         "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
@@ -230,18 +238,40 @@ if st.button("✅ Calculer"):
             f"### Énergie de la transition : **{energy_transition/Constant.Rydberg_constant:.{precision}f} Ry**")
 
 
-# Auto-fermeture après 5 minutes d'inactivité
+
+# Auto-refresh chaque 60 secondes
 count = st_autorefresh(interval=60000, key="auto_refresh")
 
 if "last_ping" not in st.session_state:
     st.session_state.last_ping = time.time()
 else:
-    if time.time() - st.session_state.last_ping > 300:  # 5 min
-        st.write("Inactivité détectée, fermeture du serveur")
+    if time.time() - st.session_state.last_ping > 7200:  #  2 hours
+        # Affichage du message + scroll JS
+        st.markdown(
+            """
+            <script>
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            </script>
+            <div style='
+                background-color:#ffdddd;
+                padding:20px;
+                border-radius:10px;
+                text-align:center;
+                font-size:40px;
+                font-weight:bold;
+                color:#b30000;
+                margin-top:0px;
+            '>
+                ⚠️ Inactivité détectée : fermeture du serveur...
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         time.sleep(2)
         os._exit(0)
     else:
         st.session_state.last_ping = time.time()
+
 
 
 

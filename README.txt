@@ -23,9 +23,9 @@ INSTALLATION
 	2) Upgrad pip (installer of library for Python) by typing : python -m pip 
 	install --upgrade pip <Enter> in the terminal.
 
-	3) Extract all the files from the SLATER.ZIP archive. 
+	3) Extract all the files from the Slater.zip archive. 
 
-	4) Open a terminal and go to the SLATER folder using cd <folder path> 
+	4) Open a terminal and go to the Slater folder using cd <folder path> 
 	<Enter>. Type pip install -r requirements.txt <Enter> to install all the 
 	required library. To verify everything is well installer type : python -c 
 	"import streamlit; import numpy; import streamlit-autorefresh; 
@@ -34,7 +34,7 @@ INSTALLATION
 
 RUNNING THE PROGRAM
 
-	In a terminal go to the SLATER folder using cd <folder path> <Enter> and 
+	In a terminal go to the Slater folder using cd <folder path> <Enter> and 
 	then type : streamlit run main.py <Enter>. The first time it will ask an 
 	e-mail to keep aware of new versions of Streamlit, juste press <Enter>. 
 	Windows will also ask if Python can access private network, accept. Then a 

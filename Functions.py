@@ -47,6 +47,25 @@ def read_orbital (orbital):
    
     return n, l, j
 
+def read_orbital_in_char (orbital):
+    """Takes a string of the form '4f7/2' and returns a tuple (n, l, j)
+    where:
+    - n is an integer
+    - l is a string (s, p, d, f)
+    - j is a string (1/2, 3/2 ...)
+    """ 
+
+    # Extract n (first character)
+    n = int(orbital[0])
+
+    # Extract l (second character)
+    l_char = orbital[1]
+
+    # Extract j (possibly "1/2", "3/2", etc.)
+    j_str = orbital[2:]
+   
+    return n, l_char, j_str
+
 
 def energy_orbital(orbital, effecive_charge):
     """Calculates the energy of a given orbital based on the effective charge using Dirac's formula.

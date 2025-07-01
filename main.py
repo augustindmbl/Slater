@@ -39,93 +39,81 @@ with col1:
 with col2:
     precision = st.selectbox("Précision sur l'énergie", [2, 3, 4, 5]) 
 
-## Configuration init ##
-st.subheader("Configuration initiale")
+## Configurations ## 
+st.header("Configurations")
 
-# Initialization of the list of orbitals
+# Initialization of the list of initial orbitals
 if "orbitals_initial" not in st.session_state:
     st.session_state.orbitals_initial = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-# Button to add an orbital or reset the list
-col1, col2 = st.columns([1, 1])
-with col1:
-    if st.button("➕ Ajouter une orbitale", key="add_orbital_initial"):
-        st.session_state.orbitals_initial.append({"n": 1, "l": "s", "j": "1/2", "occupation": 0})
-with col2:
-    if st.button("Reset", key = "reset_initial"):
-        st.session_state.orbitals_initial = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
-
-# Orbitals display
-for i, orbital in enumerate(st.session_state.orbitals_initial):
-    
-    # Position of the selectbox/button (n, l, j, P, delete buttons)
-    cols = st.columns([1, 1, 1, 1, 0.5])
-    
-    with cols[0]: #n
-        st.session_state.orbitals_initial[i]["n"] = st.selectbox(f"n", range(1, 7), key=f"n_{i}")
-    
-    with cols[1]: #l
-        n_value = float(st.session_state.orbitals_initial[i]["n"])
-        st.session_state.orbitals_initial[i]["l"] = st.selectbox(f"l", Constant.l_possible_dict[n_value], key=f"l_{i}")
-    
-    with cols[2]: #j
-        l_value = Constant.l_dict[st.session_state.orbitals_initial[i]["l"]] #To obtain the quantum number from the letter (exp : s -> 1)
-        st.session_state.orbitals_initial[i]["j"] = st.selectbox(f"j", Constant.j_possible_dict[l_value], key=f"j_{i}")
-    
-    with cols[3]: #Occupation
-        j_value = float(Fraction(st.session_state.orbitals_initial[i]["j"])) #To convert j in a float (exp : 3/2 -> 1.5)
-        st.session_state.orbitals_initial[i]["occupation"] = st.number_input(f"Occupation", min_value=0, max_value=int(2*j_value+1), step=1, key=f"occ_{i}")
-    
-    with cols[4]: # Button to remove an orbital
-        st.markdown("<br>", unsafe_allow_html=True) #To align the button with the rest of the line
-        if st.button("❌", key=f"remove_{i}"):
-            st.session_state.orbitals_initial.pop(i)
-            st.rerun()
-
-## Configuration final ##
-st.subheader("Configuration finale")
-
-# Initialization of the list of orbitals
+# Initialization of the list of final orbitals
 if "orbitals_final" not in st.session_state:
     st.session_state.orbitals_final = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-#Button to add an orbital or reset the list
+# Button to add an orbital or reset the lists
 col1, col2 = st.columns([1, 1])
 with col1:
-    if st.button("➕ Ajouter une orbitale", key="add_orbital_final"):
-        st.session_state.orbitals_final.append({"n": 1, "l": "s", "j": "1/2", "occupation": 0})
+    if st.button("➕ Ajouter une orbitale", key="add_orbital_initial"):
+        
+        last_orbital = st.session_state.orbitals_initial[-1]
+        nlj_last_orbital = str(last_orbital["n"]) + str(last_orbital["l"]) + str(last_orbital["j"])
+        index_last_orbital = Constant.orbital_dict[nlj_last_orbital]
+        
+        #Number max of orbital defined in the programm = 24 then the last one has an index of 23
+        if index_last_orbital < 23:
+            
+            next_orbital = Constant.orbital_dict_inv[index_last_orbital + 1]
+            n, l, j = Functions.read_orbital_in_char(next_orbital)
+            st.session_state.orbitals_initial.append({"n": n, "l": l, "j": j, "occupation": 0})
+            st.session_state.orbitals_final.append({"n": n, "l": l, "j": j, "occupation": 0})
+
+        else:
+            st.markdown(
+        "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
+        "Nombre maximum d'orbitales",
+        unsafe_allow_html=True)
+
 with col2:
-    if st.button("Reset", key = "reset_final"):
+    if st.button("Reset", key = "reset_initial"):
+        st.session_state.orbitals_initial = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
         st.session_state.orbitals_final = [{"n": 1, "l": "s", "j": "1/2", "occupation": 0}]
 
-# Orbitals display
+#Intialization of layout
+cols = st.columns([1, 1, 1, 0.5])
+
+with cols[1]:
+    st.subheader("Initiale")
+
+with cols[2]:
+    st.subheader("Finale")
+
 for i, orbital in enumerate(st.session_state.orbitals_final):
     
-    # Position of the selectbox/button (n, l, j, P, delete buttons)
-    cols = st.columns([1, 1, 1, 1, 0.5])
+    cols = st.columns([1, 1, 1, 0.5])
     
-    with cols[0]:  # n
-        st.session_state.orbitals_final[i]["n"] = st.selectbox(f"n", range(1, 7), key=f"n_final_{i}")
-    
-    with cols[1]:  # l
-        n_value = float(st.session_state.orbitals_final[i]["n"])
-        st.session_state.orbitals_final[i]["l"] = st.selectbox(f"l", Constant.l_possible_dict[n_value], key=f"l_final_{i}")
-    
-    with cols[2]:  # j
-        l_value = Constant.l_dict[st.session_state.orbitals_final[i]["l"]] #To obtain the quantum number from the letter (exp : s -> 1)
-        st.session_state.orbitals_final[i]["j"] = st.selectbox(f"j", Constant.j_possible_dict[l_value], key=f"j_final_{i}")
-    
-    with cols[3]:  # Occupation
-        j_value = float(Fraction(st.session_state.orbitals_final[i]["j"])) #To convert j in a float (exp : 3/2 -> 1.5)
-        st.session_state.orbitals_final[i]["occupation"] = st.number_input(f"Occupation", min_value=0, max_value=int(2*j_value + 1), step=1, key=f"occ_final_{i}")
-    
-    with cols[4]:  # Button to remove an orbital
+    nlj = str(orbital["n"]) + str(orbital["l"]) + str(orbital["j"])
+    orbital_index = Constant.orbital_dict[nlj]
+    orbital_latex = Constant.orbital_latex_dict[orbital_index]
+    n, l, j = Functions.read_orbital(nlj)
+
+    with cols[0]: # Name of the orbital
         st.markdown("<br>", unsafe_allow_html=True) #To align the button with the rest of the line
-        if st.button("❌", key=f"remove_final_{i}"):
-            st.session_state.orbitals_final.pop(i)
-            st.rerun()
+        st.markdown(f"${orbital_latex}$")
 
+    with cols[1]: # Occupation of the orbital in initial configuration
+        st.session_state.orbitals_initial[i]["occupation"] = st.number_input(f"Occupation", min_value=0, max_value=int(2*j + 1), step=1, key=f"occ_initial_{i}")
 
+    with cols[2]: # Occupation of the orbital in final configuration
+        st.session_state.orbitals_final[i]["occupation"] = st.number_input(f"Occupation", min_value=0, max_value=int(2*j + 1), step=1, key=f"occ_final_{i}")
+    
+    with cols[3]: # Button to remove an orbital
+        st.markdown("<br>", unsafe_allow_html=True) #To align the button with the rest of the line
+        
+        if st.button("❌", key=f"remove_final_{i}") and orbital == st.session_state.orbitals_initial[-1]:
+            if orbital != st.session_state.orbitals_initial[0]:
+                st.session_state.orbitals_initial.pop(i)
+                st.session_state.orbitals_final.pop(i)
+                st.rerun()
 
 # --------------- Calculation ---------------
 

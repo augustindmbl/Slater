@@ -4,11 +4,12 @@
 import os
 
 # Physical constants
-mass_electron = 9.10939*10**(-31)  # (en kg)
-light_speed = 2.99792*10**8  # (en m/s)
+mass_electron = 9.10939*10**(-31)  # (in kg)
+light_speed = 2.99792*10**8  # (in m/s)
 fine_structure_constant = 1/137.03 
-eV = 1.60218*10**(-19)  # (en J) 
-Rydberg_constant = 13.60569  # (en eV)
+eV = 1.60218*10**(-19)  # (in J) 
+Rydberg_constant = 13.60569  # (in eV)
+Ht = 2*Rydberg_constant # (in eV)
 
 # Dictionaries
 orbital_dict = {"1s1/2": 0, 

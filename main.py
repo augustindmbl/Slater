@@ -41,7 +41,7 @@ with col2:
 
 ## Button to change mode : Transition energies vs Binding energies ##
 st.header("Type de calculs")
-mode = st.selectbox("", ["Énergie de transition", "Énergie de liaison"],
+mode = st.selectbox("No title", ["Énergie de transition", "Énergie de liaison"],
     label_visibility="collapsed")
 # Mode for transition energies calculation        
 if mode == "Énergie de transition":

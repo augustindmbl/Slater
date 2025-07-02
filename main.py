@@ -1,8 +1,5 @@
 import streamlit as st # type: ignore
 from streamlit_autorefresh import st_autorefresh # type: ignore
-from fractions import Fraction
-import os
-import time
 
 import Constant
 import Functions
@@ -300,6 +297,20 @@ elif mode == "Énergie de liaison":
         # Calculates the number of electron in the configuration
         number_electron = sum(config_list)
 
+        # Initialization of a list wich will contain a dictionary with the name of the orbital and the binding energy
+        binding_energy_list = [0]*24
+
+        # Fill binding_energy_list with the name of the orbital and its binding energy
+        for index, occupation in enumerate(config_list):
+
+            if occupation != 0:
+                orbital = Constant.orbital_dict_inv[index]
+                orbital_latex = Constant.orbital_latex_dict[index]
+                binding_energy = Functions.binding_energy_HF(atomic_number, orbital, config_list, screen_constants)
+
+                binding_energy_list[index] = binding_energy
+        
+
     # --------------- Output ---------------
 
         st.header("Résultats") 
@@ -326,8 +337,39 @@ elif mode == "Énergie de liaison":
             else:
                 ion_name = atomic_symbol
 
+       
+            st.markdown(
+            f"**Ion** : ${ion_name}$  \n"
+            f"**Configuration** : ${config}$ \n")
+
+            st.markdown("### Énergies de liaison")
+            
             # Results in eV
             if units == "eV":
-                st.markdown(
-                f"**Ion** : ${ion_name}$  \n"
-                f"**Configuration** : ${config}$ \n")
+
+                for index, binding_energy in enumerate(binding_energy_list):
+
+                    if binding_energy !=0:
+
+                        orbital_latex = Constant.orbital_latex_dict[index]
+                        st.markdown(f"${orbital_latex}$ : {binding_energy:.{precision}f} eV")
+            
+            # Results in atomic units
+            elif units == "a.u.":
+
+                for index, binding_energy in enumerate(binding_energy_list):
+
+                    if binding_energy !=0:
+
+                        orbital_latex = Constant.orbital_latex_dict[index]
+                        st.markdown(f"${orbital_latex}$ : {binding_energy/(2*Constant.Rydberg_constant):.{precision}f} a.u.")
+            
+            # Results in atomic Rydberg
+            elif units == "Rydberg":
+
+                for index, binding_energy in enumerate(binding_energy_list):
+
+                    if binding_energy !=0:
+
+                        orbital_latex = Constant.orbital_latex_dict[index]
+                        st.markdown(f"${orbital_latex}$ : {binding_energy/Constant.Rydberg_constant:.{precision}f} Ry")

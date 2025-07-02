@@ -63,33 +63,6 @@ orbital_latex_dict = {0: "1s_{1/2}",
     22: "6p_{1/2}",
     23: "6p_{3/2}"}
 
-orbital_max_electrons = {
-    0: 2,   
-    1: 2,
-    2: 2,
-    3: 4,   
-    4: 2,
-    5: 2,
-    6: 4,
-    7: 4,
-    8: 6,   
-    9: 2,
-    10: 2,
-    11: 4,
-    12: 4,
-    13: 6,
-    14: 6,
-    15: 8,  
-    16: 2,
-    17: 2,
-    18: 4,
-    19: 4,
-    20: 6,
-    21: 2,
-    22: 2,
-    23: 4
-}
-
 element_atomic_number_dict = {"Hydrogen (1)": 1,
     "Helium (2)": 2,
     "Lithium (3)": 3,
@@ -135,17 +108,6 @@ l_dict = {"s": 0,
           "d": 2, 
           "f": 3}
 
-l_possible_dict = {1: ["s"],
-                   2: ["s", "p"],
-                   3: ["s", "p", "d"],
-                   4: ["s", "p", "d", "f"],
-                   5: ["s", "p", "d"],
-                   6: ["s", "p"]}
-
-j_possible_dict = {0: ["1/2"], 
-                   1: ["1/2", "3/2"], 
-                   2: ["3/2", "5/2"], 
-                   3: ["5/2", "7/2"]}
 
 # File path for screening constants and automatic configuration
 directory = os.getcwd()  

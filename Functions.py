@@ -56,36 +56,28 @@ def read_orbital (orbital):
    
     return n, l, j
 
-def read_orbital_in_char (orbital):
-    """Takes a string of the form '4f7/2' and returns a tuple (n, l, j).
+def read_orbital(orbital):
+    """Takes a string of the form '4f7/2' or '10d5/2' and returns a tuple (n, l, j)."""
 
-    Args:
-        string (str): String representing the orbital, in the format 'nlj' 
-                    (e.g., '4f7/2'), where:
-                    - n is the principal quantum number,
-                    - l is the spectroscopic letter (s, p, d, f),
-                    - j is the total angular momentum.
+    # --- Extract n (can be multiple digits) ---
+    i = 0
+    while i < len(orbital) and orbital[i].isdigit():
+        i += 1
+    n = int(orbital[:i])
 
-    Returns:
-        tuple: A tuple (n, l, j) where:
-            - n (int): Principal quantum number.
-            - l (string): Orbital angular momentum quantum number (s, p, d, f).
-            - j (string): Total angular momentum (1/2, 3/2, ...).
-    """
+    # --- Extract and convert l ---
+    l_char = orbital[i]
+    l = Constant.l_dict[l_char]
 
-    # Extract n (first character)
-    n = int(orbital[0])
+    # --- Extract j (e.g. "7/2") ---
+    j_str = orbital[i+1:]
+    num, denom = j_str.split('/')
+    j = int(num) / int(denom)
 
-    # Extract l (second character)
-    l_char = orbital[1]
-
-    # Extract j (possibly "1/2", "3/2", etc.)
-    j_str = orbital[2:]
-   
-    return n, l_char, j_str
+    return n, l, j
 
 
-def energy_orbital(orbital, effecive_charge):
+def energy_orbital(orbital, effective_charge):
     """Calculates the energy of a given orbital based on the effective charge using Dirac's formula.
 
     Args:
@@ -99,8 +91,8 @@ def energy_orbital(orbital, effecive_charge):
     n, l , j = read_orbital(orbital)
 
     energy = Constant.mass_electron*Constant.light_speed**2*((1 + 
-            (Constant.fine_structure_constant*effecive_charge/(n - j - 0.5 + np.sqrt((j + 0.5)**2 - 
-            (Constant.fine_structure_constant*effecive_charge)**2)))**2)**(-1/2) - 1) / Constant.eV
+            (Constant.fine_structure_constant*effective_charge/(n - j - 0.5 + np.sqrt((j + 0.5)**2 - 
+            (Constant.fine_structure_constant*effective_charge)**2)))**2)**(-1/2) - 1) / Constant.eV
 
     return energy
 

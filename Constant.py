@@ -113,6 +113,6 @@ l_dict = {"s": 0,
 # File path for screening constants and automatic configuration
 directory = os.getcwd()  
 
-file_path_mendozza = os.path.join(directory, "Screening constants\\mendozza_constants.csv")
-file_path_lanzini = os.path.join(directory, "Screening constants\\lanzini_constants.csv")
-file_path_faussurier = os.path.join(directory, "Screening constants\\faussurier_constants.csv")
+file_path_mendozza = os.path.join(directory, "Screening constants/mendozza_constants.csv")
+file_path_lanzini = os.path.join(directory, "Screening constants/lanzini_constants.csv")
+file_path_faussurier = os.path.join(directory, "Screening constants/faussurier_constants.csv")

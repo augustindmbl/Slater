@@ -25,37 +25,6 @@ def read_csv_screening_constants(filepath):
 
     return np.array(data, dtype=float)
 
-def read_orbital (orbital):
-    """Takes a string of the form '4f7/2' and returns a tuple (n, l, j).
-
-    Args:
-        string (str): String representing the orbital, in the format 'nlj' 
-                    (e.g., '4f7/2'), where:
-                    - n is the principal quantum number,
-                    - l is the spectroscopic letter (s, p, d, f),
-                    - j is the total angular momentum.
-
-    Returns:
-        tuple: A tuple (n, l, j) where:
-            - n (int): Principal quantum number.
-            - l (int): Orbital angular momentum quantum number (0=s, 1=p, 2=d, 3=f).
-            - j (float): Total angular momentum.
-    """
-
-    # Extract n (first character)
-    n = int(orbital[0])
-
-    # Extract and convert l (second character)
-    l_char = orbital[1]
-    l = Constant.l_dict[l_char]
-
-    # Extract j (possibly "1/2", "3/2", etc.)
-    j_str = orbital[2:]
-    num, denom = j_str.split('/')
-    j = int(num) / int(denom)
-   
-    return n, l, j
-
 def read_orbital(orbital):
     """Takes a string of the form '4f7/2' or '10d5/2' and returns a tuple (n, l, j)."""
 
@@ -75,6 +44,34 @@ def read_orbital(orbital):
     j = int(num) / int(denom)
 
     return n, l, j
+
+def read_orbital_in_char (orbital):
+    """Takes a string of the form '4f7/2' and returns a tuple (n, l, j).
+
+    Args:
+        string (str): String representing the orbital, in the format 'nlj' 
+                    (e.g., '4f7/2'), where:
+                    - n is the principal quantum number,
+                    - l is the spectroscopic letter (s, p, d, f),
+                    - j is the total angular momentum.
+
+    Returns:
+        tuple: A tuple (n, l, j) where:
+            - n (int): Principal quantum number.
+            - l (string): Orbital angular momentum quantum number (s, p, d, f).
+            - j (string): Total angular momentum (1/2, 3/2, ...).
+    """
+
+    # Extract n (first character)
+    n = int(orbital[0])
+
+    # Extract l (second character)
+    l_char = orbital[1]
+
+    # Extract j (possibly "1/2", "3/2", etc.)
+    j_str = orbital[2:]
+   
+    return n, l_char, j_str
 
 
 def energy_orbital(orbital, effective_charge):

@@ -4,6 +4,7 @@
 import csv
 import numpy as np
 import Constant
+import re
 
 def read_csv_screening_constants(filepath):
     """Reads a CSV file (separator = ';'), removes the first row and the first column,
@@ -25,6 +26,7 @@ def read_csv_screening_constants(filepath):
 
     return np.array(data, dtype=float)
 
+
 def read_orbital(orbital):
     """Takes a string of the form '4f7/2' or '10d5/2' and returns a tuple (n, l, j)."""
 
@@ -44,6 +46,7 @@ def read_orbital(orbital):
     j = int(num) / int(denom)
 
     return n, l, j
+
 
 def read_orbital_in_char (orbital):
     """Takes a string of the form '4f7/2' and returns a tuple (n, l, j).
@@ -145,6 +148,7 @@ def energy_configuration(atomic_number, config, screen_constants):
 
     return energy_total
 
+
 def print_config(config_list):
     """Builds the string that will display the electronic configuration in LaTeX format (interpreted as a raw string).
 
@@ -162,6 +166,7 @@ def print_config(config_list):
             config += Constant.orbital_latex_dict[index] + "^{"+ str(int(value)) + "}" + r"\;"
     
     return config
+
 
 def external_screening(atomic_number, orbital, config, screen_constants):
     """Calculates the relativistic external screening for an orbital.
@@ -207,6 +212,7 @@ def external_screening(atomic_number, orbital, config, screen_constants):
 
     return total_external_screening*Constant.mass_electron*(Constant.light_speed**2) / Constant.eV
 
+
 def binding_energy_alpha (atomic_number, orbital, config, screen_constants):
     """Calculates the binding energy of an electron in a specific orbital with the K_alpha model.
 
@@ -228,6 +234,7 @@ def binding_energy_alpha (atomic_number, orbital, config, screen_constants):
     binding_energy = orbital_energy + orbital_external_screening
 
     return binding_energy
+
 
 def binding_energy_HF (atomic_number, orbital, config, screen_constants):
     """Calculates the binding energy of an electron in a specific orbital with the Hartree-Fock model.
@@ -261,3 +268,69 @@ def binding_energy_HF (atomic_number, orbital, config, screen_constants):
 
     return energy_HF 
 
+
+def is_valid_orbital(orbital):
+    """Check whether an atomic orbital written in nlj notation (e.g. '3p1/2')
+    is physically valid.
+
+    The function verifies:
+    - correct string format: n + spectroscopic letter + j as a fraction
+    - principal quantum number n >= 1
+    - orbital angular momentum l associated with the spectroscopic letter
+    - constraint l < n
+    - total angular momentum j being a half-integer
+    - consistency of j with l: j = l ± 1/2 (relativistic electron case)
+
+    Parameters
+    ----------
+    orbital : str
+        Orbital label in nlj notation (e.g. '3p1/2', '4d3/2').
+
+    Returns
+    -------
+    bool
+        True if the orbital is valid and physically consistent,
+        False otherwise.
+    """
+
+    # Check format
+    if "/" not in orbital:
+        return False
+    
+    # Reading the orbital
+    n, l, j = read_orbital(orbital)
+
+    # n >= 1
+    if n < 1:
+        return False
+
+    # l well defined and l < n
+    if l >= n:
+        return False
+
+    # j = l ± 1/2
+    if j not in (l - 0.5, l + 0.5):
+        return False
+
+    # j >= 1/2
+    if j < 0.5:
+        return False
+
+    return True
+ 
+
+def orbital_to_LaTeX (orbital):
+    """Converts an orbital string (e.g., '4f7/2') into its LaTeX representation.
+
+    Args:
+        orbital (str): Orbital string in nlj notation (e.g., '4f7/2').
+
+    Returns:
+        str: LaTeX representation of the orbital (e.g., '4f_{7/2}').
+    """
+
+    n, l_char, j_str = read_orbital_in_char(orbital)
+
+    orbital_latex = f"{n}{l_char}_{{{j_str}}}"
+
+    return orbital_latex

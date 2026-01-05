@@ -38,7 +38,7 @@ with col2:
 
 ## Button to change mode : Transition energies, Binding energies, Effective charge ##
 st.header("Type de calculs")
-mode = st.selectbox("No title", ["Énergie de transition", "Énergie de liaison", "Charge effective"],
+mode = st.selectbox("No title", ["Énergie de transition", "Énergie de liaison", "Charge effective", "Énergie de Dirac"],
     label_visibility="collapsed")
 
 # Mode for transition energies calculation        
@@ -507,6 +507,58 @@ elif mode == "Charge effective":
                     orbital_latex = Constant.orbital_latex_dict[index]
                     st.markdown(f"${orbital_latex}$ : {effective_charge:.{precision}f}")
             
+elif mode == "Énergie de Dirac":
 
-
+    ## Configurations ## 
+    st.header("Configuration")
    
+    ## Orbitale and screened charge ##
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        orbital = st.text_input("Orbitale (nlj)", "1s1/2")
+    with col2:
+        effective_charge = st.number_input("Charge effective", min_value=0.0, step=0.01, value=0.0)
+    
+    # --------------- Calculation ---------------
+    if st.button("✅ Calculer"):
+
+        # Calculation of the orbital energy
+        orbital_energy = Functions.energy_orbital(orbital, effective_charge)
+
+    # --------------- Output ---------------
+
+        st.header("Résultats") 
+
+        ## Error test section ##
+
+        # Orbital must be valid
+        if Functions.is_valid_orbital(orbital) == False:
+            st.markdown(
+            "<span style='color:red; font-weight:bold;'>❌ Erreur :</span> "
+            "L'orbital n'est pas valide.",
+            unsafe_allow_html=True)
+        
+        # If everything is good resultats are printed
+
+        else:
+
+            orbital_latex = Functions.orbital_to_LaTeX(orbital)
+
+            st.markdown(
+            f"**Orbitale** : ${orbital_latex}$  \n"
+            f"**Charge effective** : {effective_charge} \n")
+
+            # Results in eV
+            if units == "eV":
+                st.markdown(
+                f"### Énergie de Dirac: **{orbital_energy:.{precision}f} eV**")
+            
+            # Results in atomic units
+            elif units == "a.u.":
+                st.markdown(
+                f"### Énergie de Dirac : **{orbital_energy/(2*Constant.Rydberg_constant):.{precision}f} a.u.**")
+            
+            # Results in atomic Rydberg
+            elif units == "Rydberg":
+                st.markdown(
+                f"### Énergie de Dirac : **{orbital_energy/Constant.Rydberg_constant:.{precision}f} Ry**")
